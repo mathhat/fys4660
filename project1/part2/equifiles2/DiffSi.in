@@ -1,0 +1,19 @@
+read_restart ${dumpname}
+
+# temperature
+variable myTemp equal ${T}
+
+
+
+# Run simulation
+fix 1 all nvt temp ${myTemp} ${myTemp} 1
+
+compute msd all msd com yes
+
+
+thermo          ${Dump}
+thermo_style	custom step density temp c_msd[4]
+timestep ${dt}
+run ${Run}
+
+write_restart ${dumpname}

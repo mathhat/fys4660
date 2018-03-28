@@ -1,0 +1,68 @@
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+boundary p p p
+
+variable	xx equal ${size}
+variable	yy equal ${size}
+variable	zz equal ${size}
+variable	xhalf equal ${size}/2.
+variable	yhalf equal ${size}/2.
+variable	zhalf equal ${size}/2.
+lattice		fcc ${rho}
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+velocity	all create ${T} 1 loop geom dist gaussian
+timestep    ${dt}
+pair_style	lj/cut 3.0  
+pair_coeff	1 1 1.0 1.0 3.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+#region      cylinder cylinder x ${yhalf} ${zhalf} ${r} 0 ${size}
+#delete_atoms region cylinder
+
+label loopa
+variable loopi loop 20
+    variable R equal random(0,1,1) 
+    if "${R} > 0.5" then &
+        "variable r equal ${r2}"&
+    else &
+        "variable r equal ${r1}"
+    print ${r}
+    variable xrand equal random(0,${xx},1) 
+    variable yrand equal random(0,${yy},1) 
+    variable zrand equal random(0,${zz},1)
+    region ${loopi} sphere ${xrand} ${yrand} ${zrand} ${r} 
+    #delete_atoms region ${loopi}
+    group 1 region ${loopi}
+    next loopi
+    jump ${filename} loopa
+
+variable    loopi delete
+
+group pore subtract all 1
+
+
+compute temperature pore temp
+compute stress pore stress/atom NULL
+compute        p pore reduce sum c_stress[1] c_stress[2] c_stress[3]
+variable       vol equal ${xx}*${yy}*${zz}*0.4360625
+#variable       press atom -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+
+fix 1 pore nve 
+
+#fix 2 1 setforce 0.0 0.0 0.0
+#fix 2 all nve
+
+thermo ${Dump}
+
+thermo_style	custom step c_temperature
+
+#dump dump pore custom ${Dump} dump.xyz id type x y z#c_stress[1] c_stress[2] c_stress[3]
+run		${Run}
+print ${vol}

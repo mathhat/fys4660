@@ -1,0 +1,41 @@
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+boundary p p p
+
+variable	xx equal ${size}
+variable	yy equal ${size}
+variable	zz equal ${size}
+
+
+lattice		fcc ${rho}
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+velocity	all create ${T} 1 loop geom dist uniform#create temp seed
+timestep    ${dt}
+
+pair_style	lj/cut 5.0      
+pair_coeff	1 1 1.0 1.0 5.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+#compute g all rdf 100 cutoff 5
+#fix 1 all ave/time 100 1 100 c_g[1] c_g[2] file tmp.rdf mode vector
+
+#compute msd all msd com yes
+#fix msd all vector 10 c_msd[4]
+
+#fix	1 all nvt temp 2.5 2.5 100.0
+fix 1 all temp/berendsen 2.5 2.5 100.0
+fix 2 all nve
+
+thermo ${Dump}
+
+thermo_style	custom step temp #c_msd[4]
+
+#dump dump all custom ${Dump} dump_0.xyz id type x y z vx vy vz
+run		${Run}
