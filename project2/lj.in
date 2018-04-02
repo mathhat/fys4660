@@ -63,6 +63,7 @@ thermo ${Dump}
 
 thermo_style	custom step c_temperature
 
-#dump dump pore custom ${Dump} dump.xyz id type x y z#c_stress[1] c_stress[2] c_stress[3]
+dump dump pore custom ${Dump} dump.xyz id type x y z#c_stress[1] c_stress[2] c_stress[3]
+dump dump2 pore custom ${Dump} press.xyz id type c_stress[1] c_stress[2] c_stress[3]
 run		${Run}
 print ${vol}

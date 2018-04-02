@@ -45,8 +45,8 @@ with open("press.xyz", "r") as my_file:
         t += 1
 press = np.abs(press)
 
-for i in range(50):
-    press[np.argmax(press)] /= 2 
+for i in range(500):
+    press[np.argmax(press)] /= 1.1 
 
 for i in range(15000):
 
@@ -55,11 +55,14 @@ for i in range(15000):
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-scat = ax.scatter(pos[0,:], pos[1,:], pos[2,:], s=200,c = press, cmap=cm.coolwarm)
+every=20
+size = 10
+scat = ax.scatter(pos[0,::every], pos[1,::every], pos[2,::every], s=size,c = press[::every], cmap=cm.coolwarm)
+scatt = ax.scatter([0],[0],[0], s=1000)
 
 plt.colorbar(scat,shrink=0.5, aspect=5)
 ax.set_xlabel('X [MD]')
 ax.set_ylabel('Y [MD]')
 ax.set_zlabel('Z [MD]')
-
+plt.title("Pressure Visualization at Original Density",size=25)
 plt.show()

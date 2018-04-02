@@ -1,0 +1,47 @@
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+boundary p p p
+
+variable	xx equal ${size}
+variable	yy equal ${size}
+variable	zz equal ${size}
+variable	xhalf equal ${size}/2.
+variable	yhalf equal ${size}/2.
+variable	zhalf equal ${size}/2.
+lattice		fcc ${rho}
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+timestep    ${dt}
+pair_style	lj/cut 3.0  
+pair_coeff	1 1 1.0 1.0 3.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+region      cylinder1 cylinder x ${yhalf} ${zhalf} ${r} 0 ${size}
+group cyl region cylinder1
+group pore subtract all cyl
+
+velocity	cyl create ${T} 1 loop geom dist gaussian
+
+#compute temperature cyl temp
+
+#fix	     1 pore setforce 0.0 0.0 0.0
+fix	     2 cyl  addforce 0.1 0.0 0.0
+
+fix	     3 cyl nvt temp ${T} ${T} 10
+
+#thermo ${Dump}
+
+#thermo_style	custom step c_temperature
+
+dump dump cyl custom ${Dump} flow_station.xyz id type x y z vx vy vz#c_stress[1] c_stress[2] c_stress[3]
+#dump dump2 cyl custom ${Dump} press.xyz id type c_stress[1] c_stress[2] c_stress[3]
+run		${Run}
+
+# Poiseuille flow
+
